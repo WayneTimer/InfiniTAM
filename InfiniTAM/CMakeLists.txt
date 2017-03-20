@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 2.8)
 project(InfiniTAM)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
@@ -77,6 +77,6 @@ add_executable(InfiniTAM_cli InfiniTAM_cli.cpp)
 target_link_libraries(InfiniTAM_cli Engine)
 target_link_libraries(InfiniTAM_cli Utils)
 add_executable(InfiniTAM InfiniTAM.cpp)
-target_link_libraries(InfiniTAM Engine)
+target_link_libraries(InfiniTAM Engine dw)
 target_link_libraries(InfiniTAM Utils)
 

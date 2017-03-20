@@ -32,6 +32,21 @@ ImageFileReader::~ImageFileReader()
 	delete cached_depth;
 }
 
+
+_CPU_AND_GPU_CODE_ inline void my_convertDisparityToDepth(float* d_out, int x, int y, const CONSTPTR(short) *d_in)
+{
+	int locId = x + y * 640;
+
+	short disparity = d_in[locId];
+	float disparity_tmp = 1135.089966f - (float)(disparity);
+	float depth;
+
+	if (disparity_tmp == 0) depth = 0.0f;
+	else depth = 8.0f * 0.081914f * 573.710022f / disparity_tmp;
+
+	*d_out = (depth > 0) ? depth : -1.0f;
+}
+
 void ImageFileReader::loadIntoCache(void)
 {
 	if (currentFrameNo == cachedFrameNo) return;
@@ -56,6 +71,40 @@ void ImageFileReader::loadIntoCache(void)
 		delete cached_depth; cached_depth = NULL;
 		printf("error reading file '%s'\n", str);
 	}
+    else // by Timer
+    {
+        int i;
+        for (i=strlen(str)-1;i--;i>=0)
+            if (str[i]=='/') break;
+        i++;
+        printf("Reading depth file: %s\n", str+i);
+
+        FILE *depth_file;
+        char depth_file_name[100];
+        memset(depth_file_name,0,sizeof(depth_file_name));
+        strcat(depth_file_name, "/home/timer/work_git/Teddy/depth2pointcloud/depth/");
+        strcat(depth_file_name, str+i);
+        printf("depth_file_name: %s\n",depth_file_name);    // also .pgm
+
+        depth_file = fopen(depth_file_name, "w");
+        if (!depth_file)
+            puts("depth file open error!");
+
+    	Vector2i imgSize = cached_depth->noDims;
+        printf("Size: x = %d, y = %d\n",imgSize.x,imgSize.y);
+
+	    const short *d_in = cached_depth->GetData(MEMORYDEVICE_CPU);
+        float d_out;
+
+	    for (int y = 0; y < 480; y++)
+            for (int x = 0; x < 640; x++)
+            {
+		        my_convertDisparityToDepth(&d_out, x, y, d_in);
+                fprintf(depth_file, "%f ", d_out);
+            }
+
+        fclose(depth_file);
+    }
 }
 
 bool ImageFileReader::hasMoreImages(void)

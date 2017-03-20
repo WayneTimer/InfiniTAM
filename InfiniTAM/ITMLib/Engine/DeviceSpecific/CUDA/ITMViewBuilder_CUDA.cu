@@ -122,6 +122,12 @@ void ITMViewBuilder_CUDA::ConvertDisparityToDepth(ITMFloatImage *depth_out, cons
 	dim3 blockSize(16, 16);
 	dim3 gridSize((int)ceil((float)imgSize.x / (float)blockSize.x), (int)ceil((float)imgSize.y / (float)blockSize.y));
 
+// by Timer
+printf("disparityCalibParams.x = %f\n",disparityCalibParams.x);
+printf("disparityCalibParams.y = %f\n",disparityCalibParams.y);
+printf("fx_depth = %f\n",fx_depth);
+printf("imgSize = (%d, %d)\n",imgSize.x, imgSize.y);
+
 	convertDisparityToDepth_device << <gridSize, blockSize >> >(d_out, d_in, disparityCalibParams, fx_depth, imgSize);
 }
 
@@ -181,6 +187,9 @@ __global__ void convertDisparityToDepth_device(float *d_out, const short *d_in, 
 	if ((x >= imgSize.x) || (y >= imgSize.y)) return;
 
 	convertDisparityToDepth(d_out, x, y, d_in, disparityCalibParams, fx_depth, imgSize);
+
+//  by Timer
+//	d_out[x + y * imgSize.x] = -1.0f;
 }
 
 __global__ void convertDepthAffineToFloat_device(float *d_out, const short *d_in, Vector2i imgSize, Vector2f depthCalibParams)

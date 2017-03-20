@@ -1,3 +1,10 @@
+#define BACKWARD_HAS_DW 1
+#include <backward.hpp>
+namespace backward
+{
+backward::SignalHandling sh;
+} // namespace backward
+
 // Copyright 2014-2015 Isis Innovation Limited and the authors of InfiniTAM
 
 #include <cstdlib>
