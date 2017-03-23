@@ -3,6 +3,9 @@ project(InfiniTAM)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
+add_definitions( -DMY_IMAGE_WIDTH=640 )
+add_definitions( -DMY_IMAGE_HEIGHT=480 )
+
 macro(CANONIFY_BOOL var)
   if (${var})
     set(${var} TRUE)

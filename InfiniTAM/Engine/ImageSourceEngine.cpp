@@ -35,7 +35,7 @@ ImageFileReader::~ImageFileReader()
 
 _CPU_AND_GPU_CODE_ inline void my_convertDisparityToDepth(float* d_out, int x, int y, const CONSTPTR(short) *d_in)
 {
-	int locId = x + y * 640;
+	int locId = x + y * MY_IMAGE_WIDTH;
 
 	short disparity = d_in[locId];
 	float disparity_tmp = 1135.089966f - (float)(disparity);
@@ -98,8 +98,8 @@ void ImageFileReader::loadIntoCache(void)
 	    const short *d_in = cached_depth->GetData(MEMORYDEVICE_CPU);
         float d_out;
 
-	    for (int y = 0; y < 480; y++)
-            for (int x = 0; x < 640; x++)
+	    for (int y = 0; y < MY_IMAGE_HEIGHT; y++)
+            for (int x = 0; x < MY_IMAGE_WIDTH; x++)
             {
 		        my_convertDisparityToDepth(&d_out, x, y, d_in);
                 fprintf(depth_file, "%f ", d_out);

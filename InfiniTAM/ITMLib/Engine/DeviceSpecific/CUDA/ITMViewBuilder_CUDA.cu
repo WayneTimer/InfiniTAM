@@ -72,17 +72,17 @@ void ITMViewBuilder_CUDA::my_UpdateView(ITMView **view_ptr, ITMUChar4Image *rgbI
         else
         {
             float *cpu_depth;
-            cpu_depth = (float*)malloc(480*640*sizeof(float));
-	        for (int y = 0; y < 480; y++)
-                for (int x = 0; x < 640; x++)
+            cpu_depth = (float*)malloc(MY_IMAGE_HEIGHT*MY_IMAGE_WIDTH*sizeof(float));
+	        for (int y = 0; y < MY_IMAGE_HEIGHT; y++)
+                for (int x = 0; x < MY_IMAGE_WIDTH; x++)
                 {
-                	int locId = x + y * 640;
+                	int locId = x + y * MY_IMAGE_WIDTH;
                     fscanf(depth_file, "%f", (cpu_depth+locId));
                 }
             fclose(depth_file);
 
             cudaError err;
-            err = cudaMemcpy(d_out, cpu_depth, 480*640*sizeof(float), cudaMemcpyHostToDevice);
+            err = cudaMemcpy(d_out, cpu_depth, MY_IMAGE_HEIGHT*MY_IMAGE_WIDTH*sizeof(float), cudaMemcpyHostToDevice);
             if(err != cudaSuccess)
               puts("cudaMemcpy: cannot copy depth to device memory.");
 
