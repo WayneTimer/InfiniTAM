@@ -18,6 +18,7 @@ namespace InfiniTAM
 
 			virtual bool hasMoreImages(void) = 0;
 			virtual void getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth) = 0;
+			virtual void my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* depth_file_name) { };  // by Timer
 			virtual Vector2i getDepthImageSize(void) = 0;
 			virtual Vector2i getRGBImageSize(void) = 0;
 		};
@@ -42,6 +43,7 @@ namespace InfiniTAM
 
 			bool hasMoreImages(void);
 			void getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth);
+			void my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* depth_file_name);  // by Timer
 			Vector2i getDepthImageSize(void);
 			Vector2i getRGBImageSize(void);
 		};
@@ -85,6 +87,7 @@ namespace InfiniTAM
 
 			bool hasMoreImages(void);
 			void getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth);
+			void getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* depth_file_name) { } // by Timer
 
 			Vector2i getDepthImageSize(void) { return imgSize; }
 			Vector2i getRGBImageSize(void) { return imgSize; }

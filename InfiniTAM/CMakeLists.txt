@@ -30,7 +30,7 @@ find_package(libuvc QUIET)
 CANONIFY_BOOL(libuvc_FOUND)
 message(STATUS "libuvc found: ${libuvc_FOUND}")
 
-find_package(RealSense QUIET)
+#find_package(RealSense QUIET)
 CANONIFY_BOOL(REALSENSE_FOUND)
 message(STATUS "librealsense found: ${REALSENSE_FOUND}")
 

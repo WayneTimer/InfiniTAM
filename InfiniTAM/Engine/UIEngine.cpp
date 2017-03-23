@@ -441,8 +441,17 @@ void UIEngine::GetScreenshot(ITMUChar4Image *dest) const
 
 void UIEngine::ProcessFrame()
 {
-	if (!imageSource->hasMoreImages()) return;
-	imageSource->getImages(inputRGBImage, inputRawDepthImage);
+    // by Timer
+    char depth_file_name[100];
+
+	if (!imageSource->hasMoreImages())
+    {
+        puts("!imageSource->hasMoreImages()");
+        return;
+    }
+	imageSource->my_getImages(inputRGBImage, inputRawDepthImage, depth_file_name);
+    // bu Timer
+    printf("UIEngine.cpp -> after imageSource->getImages -> depth_file_name: %s\n",depth_file_name);
 
 	if (imuSource != NULL) {
 		if (!imuSource->hasMoreMeasurements()) return;
@@ -466,8 +475,16 @@ void UIEngine::ProcessFrame()
 	sdkStartTimer(&timer_instant); sdkStartTimer(&timer_average);
 
 	//actual processing on the mailEngine
-	if (imuSource != NULL) mainEngine->ProcessFrame(inputRGBImage, inputRawDepthImage, inputIMUMeasurement);
-	else mainEngine->ProcessFrame(inputRGBImage, inputRawDepthImage);
+    // by Timer
+	if (imuSource != NULL)
+    {
+        mainEngine->ProcessFrame(inputRGBImage, inputRawDepthImage, inputIMUMeasurement);
+    }
+	else
+    {
+        printf("UIEngine.cpp -> depth_file_name: %s\n", depth_file_name);
+        mainEngine->ProcessFrame(inputRGBImage, inputRawDepthImage, NULL, depth_file_name);
+    }
 
 #ifndef COMPILE_WITHOUT_CUDA
 	ITMSafeCall(cudaThreadSynchronize());

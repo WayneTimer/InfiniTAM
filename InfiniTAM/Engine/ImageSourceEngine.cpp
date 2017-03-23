@@ -79,6 +79,8 @@ void ImageFileReader::loadIntoCache(void)
         i++;
         printf("Reading depth file: %s\n", str+i);
 
+// by Timer
+/*
         FILE *depth_file;
         char depth_file_name[100];
         memset(depth_file_name,0,sizeof(depth_file_name));
@@ -104,6 +106,7 @@ void ImageFileReader::loadIntoCache(void)
             }
 
         fclose(depth_file);
+*/
     }
 }
 
@@ -113,11 +116,59 @@ bool ImageFileReader::hasMoreImages(void)
 	return ((cached_rgb!=NULL)&&(cached_depth!=NULL));
 }
 
+
+// by Timer
+void ImageFileReader::my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* depth_file_name)
+{
+    puts("Into ImageFileReader::my_getImages.");
+
+	bool bUsedCache = false;
+	if (cached_rgb != NULL) {
+		rgb->SetFrom(cached_rgb, ORUtils::MemoryBlock<Vector4u>::CPU_TO_CPU);
+		delete cached_rgb;
+		cached_rgb = NULL;
+		bUsedCache = true;
+	}
+	if (cached_depth != NULL) {
+		rawDepth->SetFrom(cached_depth, ORUtils::MemoryBlock<short>::CPU_TO_CPU);
+		delete cached_depth;
+		cached_depth = NULL;
+		bUsedCache = true;
+
+        // by Timer
+        char str[2048];
+		sprintf(str, depthImageMask, currentFrameNo);
+        int i;
+        for (i=strlen(str)-1;i--;i>=0)
+            if (str[i]=='/') break;
+        i++;
+        printf("Reading depth file: %s\n", str+i);
+
+        memset(depth_file_name,0,sizeof(depth_file_name));
+        strcat(depth_file_name, "/home/timer/work_git/Teddy/depth2pointcloud/depth_results/");
+        strcat(depth_file_name, str+i);
+        printf("ImageFileReader::getImages:  depth_file_name: %s\n",depth_file_name);    // also .pgm
+	}
+
+	if (!bUsedCache) {
+		char str[2048];
+
+		sprintf(str, rgbImageMask, currentFrameNo);
+		if (!ReadImageFromFile(rgb, str)) printf("error reading file '%s'\n", str);
+
+		sprintf(str, depthImageMask, currentFrameNo);
+		if (!ReadImageFromFile(rawDepth, str)) printf("error reading file '%s'\n", str);
+	}
+
+	++currentFrameNo;
+}
+
 void ImageFileReader::getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth)
 {
 	bool bUsedCache = false;
 	if (cached_rgb != NULL) {
 		rgb->SetFrom(cached_rgb, ORUtils::MemoryBlock<Vector4u>::CPU_TO_CPU);
+
 		delete cached_rgb;
 		cached_rgb = NULL;
 		bUsedCache = true;
@@ -136,6 +187,7 @@ void ImageFileReader::getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth)
 		if (!ReadImageFromFile(rgb, str)) printf("error reading file '%s'\n", str);
 
 		sprintf(str, depthImageMask, currentFrameNo);
+
 		if (!ReadImageFromFile(rawDepth, str)) printf("error reading file '%s'\n", str);
 	}
 

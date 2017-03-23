@@ -78,6 +78,40 @@ namespace ITMLib
       ITMTracker *Make(const Vector2i& trackedImageSize, const ITMLibSettings *settings, const ITMLowLevelEngine *lowLevelEngine,
                        ITMIMUCalibrator *imuCalibrator, ITMScene<TVoxel,TIndex> *scene) const
       {
+        // by Timer
+        switch (settings->trackerType)
+        {
+            case ITMLib::Objects::ITMLibSettings::TRACKER_COLOR:
+            {
+                puts("TRACKER_COLOR");
+                break;
+            }
+            case ITMLib::Objects::ITMLibSettings::TRACKER_ICP:
+            {
+                puts("TRACKER_ICP");
+                break;
+            }
+            case ITMLib::Objects::ITMLibSettings::TRACKER_REN:
+            {
+                puts("TRACKER_REN");
+                break;
+            }
+            case ITMLib::Objects::ITMLibSettings::TRACKER_IMU:
+            {
+                puts("TRACKER_IMU");
+                break;
+            }
+            case ITMLib::Objects::ITMLibSettings::TRACKER_WICP:
+            {
+                puts("TRACKER_WICP");
+                break;
+            }
+            default:
+            {
+                puts("No corresponding tracker");
+            }
+        }
+
         typename std::map<ITMLibSettings::TrackerType,Maker>::const_iterator it = makers.find(settings->trackerType);
         if(it == makers.end()) DIEWITHEXCEPTION("Unknown tracker type");
 

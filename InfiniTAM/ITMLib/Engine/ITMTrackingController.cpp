@@ -12,7 +12,9 @@ void ITMTrackingController::Track(ITMTrackingState *trackingState, const ITMView
 {
 	if (trackingState->age_pointCloud!=-1) tracker->TrackCamera(trackingState, view);
 
-	trackingState->requiresFullRendering = trackingState->TrackerFarFromPointCloud() || !settings->useApproximateRaycast;
+    // by Timer
+    trackingState->requiresFullRendering = true;
+	//trackingState->requiresFullRendering = trackingState->TrackerFarFromPointCloud() || !settings->useApproximateRaycast;
 }
 
 void ITMTrackingController::Prepare(ITMTrackingState *trackingState, const ITMView *view, ITMRenderState *renderState)

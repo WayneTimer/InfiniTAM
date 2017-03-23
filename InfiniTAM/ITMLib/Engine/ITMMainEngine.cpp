@@ -107,16 +107,60 @@ void ITMMainEngine::SaveSceneToMesh(const char *objFileName)
 	mesh->WriteSTL(objFileName);
 }
 
-void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, ITMIMUMeasurement *imuMeasurement)
+void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, ITMIMUMeasurement *imuMeasurement, char* depth_file_name)  // by Timer
 {
 	// prepare image and turn it into a depth image
-	if (imuMeasurement==NULL) viewBuilder->UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter,settings->modelSensorNoise);
-	else viewBuilder->UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter, imuMeasurement);
+	if (imuMeasurement==NULL)
+    {
+        puts("ITMMainEngine.cpp: IMU == NULL");
+        printf("depth_file_name: %s\n", depth_file_name);
+        viewBuilder->my_UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter,settings->modelSensorNoise, depth_file_name);  // by Timer
+    }
+	else
+    {
+        viewBuilder->UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter, imuMeasurement);
+    }
 
 	if (!mainProcessingActive) return;
 
 	// tracking
-	trackingController->Track(trackingState, view);
+	//trackingController->Track(trackingState, view);
+
+    // by Timer
+    // save pose
+    Matrix3f rotation;
+    Vector3f translation;
+    int i;
+    for (i=strlen(depth_file_name)-1;i>=0;i--)
+        if (depth_file_name[i]=='.') break;
+    char pose_file_name[100];
+    memset(pose_file_name,0,sizeof(pose_file_name));
+    strcpy(pose_file_name,depth_file_name);
+    pose_file_name[i+1] = 't';
+    pose_file_name[i+2] = 'x';
+    pose_file_name[i+3] = 't';
+    printf("pose file name: %s\n",pose_file_name);
+
+    FILE *pose_file;
+/*
+    rotation = trackingState->pose_d->GetR();
+    translation = trackingState->pose_d->GetT();
+    pose_file = fopen(pose_file_name,"w");
+    fprintf(pose_file,"%f %f %f\n",rotation.m00,rotation.m01,rotation.m02);
+    fprintf(pose_file,"%f %f %f\n",rotation.m10,rotation.m11,rotation.m12);
+    fprintf(pose_file,"%f %f %f\n",rotation.m20,rotation.m21,rotation.m22);
+    fprintf(pose_file,"%f %f %f\n",translation.x,translation.y,translation.z);
+*/
+
+    // use pose from files
+    pose_file = fopen(pose_file_name,"r");
+    fscanf(pose_file,"%f %f %f",&rotation.m00,&rotation.m01,&rotation.m02);
+    fscanf(pose_file,"%f %f %f",&rotation.m10,&rotation.m11,&rotation.m12);
+    fscanf(pose_file,"%f %f %f",&rotation.m20,&rotation.m21,&rotation.m22);
+    fscanf(pose_file,"%f %f %f",&translation.x,&translation.y,&translation.z);
+    trackingState->pose_d->SetRT(rotation, translation);
+
+    fclose(pose_file);
 
 	// fusion
 	if (fusionActive) denseMapper->ProcessFrame(view, trackingState, scene, renderState_live);

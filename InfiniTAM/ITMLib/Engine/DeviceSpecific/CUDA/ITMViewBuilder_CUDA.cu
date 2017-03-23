@@ -30,6 +30,93 @@ __global__ void ComputeNormalAndWeight_device(const float* depth_in, Vector4f* n
 //
 //---------------------------------------------------------------------------
 
+// by Timer
+void ITMViewBuilder_CUDA::my_UpdateView(ITMView **view_ptr, ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, bool useBilateralFilter, bool modelSensorNoise, char* depth_file_name)
+{
+	if (*view_ptr == NULL)
+	{
+		*view_ptr = new ITMView(calib, rgbImage->noDims, rawDepthImage->noDims, true);
+		if (this->shortImage != NULL) delete this->shortImage;
+		this->shortImage = new ITMShortImage(rawDepthImage->noDims, true, true);
+		if (this->floatImage != NULL) delete this->floatImage;
+		this->floatImage = new ITMFloatImage(rawDepthImage->noDims, true, true);
+
+		if (modelSensorNoise)
+		{
+			(*view_ptr)->depthNormal = new ITMFloat4Image(rawDepthImage->noDims, true, true);
+			(*view_ptr)->depthUncertainty = new ITMFloatImage(rawDepthImage->noDims, true, true);
+		}
+	}
+
+	ITMView *view = *view_ptr;
+
+	view->rgb->SetFrom(rgbImage, MemoryBlock<Vector4u>::CPU_TO_CUDA);
+	this->shortImage->SetFrom(rawDepthImage, MemoryBlock<short>::CPU_TO_CUDA);
+
+	switch (view->calib->disparityCalib.type)
+	{
+	case ITMDisparityCalib::TRAFO_KINECT:
+// by Timer
+        {
+        puts("In ITMViewBuilder_CUDA.cu -> ITMDisparityCalib::TRAFO_KINECT, setting depth from files");
+    	float *d_out = view->depth->GetData(MEMORYDEVICE_CUDA);
+
+        FILE *depth_file;
+        printf("depth_file_name: %s\n",depth_file_name);    // also .pgm
+
+        depth_file = fopen(depth_file_name, "r");
+        if (!depth_file)
+        {
+            puts("depth file open error!");
+        }
+        else
+        {
+            float *cpu_depth;
+            cpu_depth = (float*)malloc(480*640*sizeof(float));
+	        for (int y = 0; y < 480; y++)
+                for (int x = 0; x < 640; x++)
+                {
+                	int locId = x + y * 640;
+                    fscanf(depth_file, "%f", (cpu_depth+locId));
+                }
+            fclose(depth_file);
+
+            cudaError err;
+            err = cudaMemcpy(d_out, cpu_depth, 480*640*sizeof(float), cudaMemcpyHostToDevice);
+            if(err != cudaSuccess)
+              puts("cudaMemcpy: cannot copy depth to device memory.");
+
+            free(cpu_depth);
+        }
+
+		this->ConvertDisparityToDepth(view->depth, this->shortImage, &(view->calib->intrinsics_d), view->calib->disparityCalib.params);
+		break;
+        }
+	case ITMDisparityCalib::TRAFO_AFFINE:
+		this->ConvertDepthAffineToFloat(view->depth, this->shortImage, view->calib->disparityCalib.params);
+		break;
+	default:
+		break;
+	}
+
+	if (useBilateralFilter)
+	{
+		//5 steps of bilateral filtering
+		this->DepthFiltering(this->floatImage, view->depth);
+		this->DepthFiltering(view->depth, this->floatImage);
+		this->DepthFiltering(this->floatImage, view->depth);
+		this->DepthFiltering(view->depth, this->floatImage);
+		this->DepthFiltering(this->floatImage, view->depth);
+		view->depth->SetFrom(this->floatImage, MemoryBlock<float>::CUDA_TO_CUDA);
+	}
+
+	if (modelSensorNoise)
+	{
+		this->ComputeNormalAndWeights(view->depthNormal, view->depthUncertainty, view->depth, view->calib->intrinsics_d.projectionParamsSimple.all);
+	}
+}
+
+// by Timer
 void ITMViewBuilder_CUDA::UpdateView(ITMView **view_ptr, ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, bool useBilateralFilter, bool modelSensorNoise)
 {
 	if (*view_ptr == NULL)
@@ -128,7 +215,8 @@ printf("disparityCalibParams.y = %f\n",disparityCalibParams.y);
 printf("fx_depth = %f\n",fx_depth);
 printf("imgSize = (%d, %d)\n",imgSize.x, imgSize.y);
 
-	convertDisparityToDepth_device << <gridSize, blockSize >> >(d_out, d_in, disparityCalibParams, fx_depth, imgSize);
+// by Timer
+//	convertDisparityToDepth_device << <gridSize, blockSize >> >(d_out, d_in, disparityCalibParams, fx_depth, imgSize);
 }
 
 void ITMViewBuilder_CUDA::ConvertDepthAffineToFloat(ITMFloatImage *depth_out, const ITMShortImage *depth_in, Vector2f depthCalibParams)

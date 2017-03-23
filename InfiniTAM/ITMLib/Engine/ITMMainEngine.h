@@ -94,7 +94,7 @@ namespace ITMLib
 			ITMScene<ITMVoxel, ITMVoxelIndex>* GetScene(void) { return scene; }
 
 			/// Process a frame with rgb and depth images and optionally a corresponding imu measurement
-			void ProcessFrame(ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, ITMIMUMeasurement *imuMeasurement = NULL);
+			void ProcessFrame(ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, ITMIMUMeasurement *imuMeasurement = NULL, char* depth_file_name = NULL);  // by Timer
 
 			// Gives access to the data structure used internally to store any created meshes
 			ITMMesh* GetMesh(void) { return mesh; }
