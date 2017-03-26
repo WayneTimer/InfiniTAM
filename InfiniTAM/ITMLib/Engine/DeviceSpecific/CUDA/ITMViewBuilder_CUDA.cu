@@ -116,6 +116,34 @@ void ITMViewBuilder_CUDA::my_UpdateView(ITMView **view_ptr, ITMUChar4Image *rgbI
 	}
 }
 
+
+// by Timer
+void ITMViewBuilder_CUDA::float_UpdateView(ITMView **view_ptr, ITMUChar4Image *rgbImage, ITMFloatImage *rawDepthImage, bool useBilateralFilter, bool modelSensorNoise, char* depth_file_name)
+{
+	if (*view_ptr == NULL)
+	{
+        puts("In float_UpdateView -> view_ptr == NULL");
+		*view_ptr = new ITMView(calib, rgbImage->noDims, rawDepthImage->noDims, true);
+		if (this->shortImage != NULL) delete this->shortImage;
+		this->shortImage = new ITMShortImage(rawDepthImage->noDims, true, true);
+		if (this->floatImage != NULL) delete this->floatImage;
+		this->floatImage = new ITMFloatImage(rawDepthImage->noDims, true, true);
+
+		if (modelSensorNoise)
+		{
+			(*view_ptr)->depthNormal = new ITMFloat4Image(rawDepthImage->noDims, true, true);
+			(*view_ptr)->depthUncertainty = new ITMFloatImage(rawDepthImage->noDims, true, true);
+		}
+	}
+
+	ITMView *view = *view_ptr;
+
+	view->rgb->SetFrom(rgbImage, MemoryBlock<Vector4u>::CPU_TO_CUDA);
+    // by Timer
+    view->depth->SetFrom(rawDepthImage, MemoryBlock<float>::CPU_TO_CUDA);
+	//this->shortImage->SetFrom(rawDepthImage, MemoryBlock<short>::CPU_TO_CUDA);
+}
+
 // by Timer
 void ITMViewBuilder_CUDA::UpdateView(ITMView **view_ptr, ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, bool useBilateralFilter, bool modelSensorNoise)
 {
@@ -171,7 +199,10 @@ void ITMViewBuilder_CUDA::UpdateView(ITMView **view_ptr, ITMUChar4Image *rgbImag
 void ITMViewBuilder_CUDA::UpdateView(ITMView **view_ptr, ITMUChar4Image *rgbImage, ITMFloatImage *depthImage)
 {
 	if (*view_ptr == NULL)
+    {
+        puts("In UpdateView -> view_ptr == NULL");
 		*view_ptr = new ITMView(calib, rgbImage->noDims, depthImage->noDims, true);
+    }
 
 	ITMView *view = *view_ptr;
 

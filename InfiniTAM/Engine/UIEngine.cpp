@@ -393,6 +393,7 @@ void UIEngine::Initialise(int & argc, char** argv, ImageSourceEngine *imageSourc
 
 	inputRGBImage = new ITMUChar4Image(imageSource->getRGBImageSize(), true, allocateGPU);
 	inputRawDepthImage = new ITMShortImage(imageSource->getDepthImageSize(), true, allocateGPU);
+    my_inputRawDepthImage = new ITMFloatImage(imageSource->getDepthImageSize(), true, allocateGPU);  // by Timer
 	inputIMUMeasurement = new ITMIMUMeasurement();
 
 	saveImage = new ITMUChar4Image(imageSource->getDepthImageSize(), true, false);
@@ -443,15 +444,16 @@ void UIEngine::ProcessFrame()
 {
     // by Timer
     char depth_file_name[100];
+    char img_file_name[100];
+    memset(depth_file_name, 0, sizeof(depth_file_name));
+    memset(img_file_name, 0, sizeof(img_file_name));
 
 	if (!imageSource->hasMoreImages())
     {
         puts("!imageSource->hasMoreImages()");
         return;
     }
-	imageSource->my_getImages(inputRGBImage, inputRawDepthImage, depth_file_name);
-    // bu Timer
-    printf("UIEngine.cpp -> after imageSource->getImages -> depth_file_name: %s\n",depth_file_name);
+	imageSource->my_getImages(inputRGBImage, my_inputRawDepthImage, img_file_name, depth_file_name);
 
 	if (imuSource != NULL) {
 		if (!imuSource->hasMoreMeasurements()) return;
@@ -478,12 +480,13 @@ void UIEngine::ProcessFrame()
     // by Timer
 	if (imuSource != NULL)
     {
-        mainEngine->ProcessFrame(inputRGBImage, inputRawDepthImage, inputIMUMeasurement);
+        puts("UI Engine: imuSource != NULL ????   Error");
+        //mainEngine->ProcessFrame(inputRGBImage, inputRawDepthImage, inputIMUMeasurement);
     }
 	else
     {
         printf("UIEngine.cpp -> depth_file_name: %s\n", depth_file_name);
-        mainEngine->ProcessFrame(inputRGBImage, inputRawDepthImage, NULL, depth_file_name);
+        mainEngine->ProcessFrame(inputRGBImage, my_inputRawDepthImage, NULL, depth_file_name);
     }
 
 #ifndef COMPILE_WITHOUT_CUDA
@@ -508,6 +511,7 @@ void UIEngine::Shutdown()
 
 	delete inputRGBImage;
 	delete inputRawDepthImage;
+	delete my_inputRawDepthImage;   // by Timer
 	delete inputIMUMeasurement;
 
 	delete[] outFolder;

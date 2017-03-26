@@ -107,18 +107,23 @@ void ITMMainEngine::SaveSceneToMesh(const char *objFileName)
 	mesh->WriteSTL(objFileName);
 }
 
-void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, ITMIMUMeasurement *imuMeasurement, char* depth_file_name)  // by Timer
+// by Timer
+void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMFloatImage *rawDepthImage, ITMIMUMeasurement *imuMeasurement, char* depth_file_name)  // by Timer
+//void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, ITMIMUMeasurement *imuMeasurement, char* depth_file_name)  // by Timer
 {
 	// prepare image and turn it into a depth image
 	if (imuMeasurement==NULL)
     {
         puts("ITMMainEngine.cpp: IMU == NULL");
         printf("depth_file_name: %s\n", depth_file_name);
-        viewBuilder->my_UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter,settings->modelSensorNoise, depth_file_name);  // by Timer
+        // by Timer
+        viewBuilder->float_UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter,settings->modelSensorNoise, depth_file_name);  // by Timer
+        //viewBuilder->my_UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter,settings->modelSensorNoise, depth_file_name);  // by Timer
     }
 	else
     {
-        viewBuilder->UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter, imuMeasurement);
+        puts("In IMU mode ??? Error.");
+        //viewBuilder->UpdateView(&view, rgbImage, rawDepthImage, settings->useBilateralFilter, imuMeasurement);
     }
 
 	if (!mainProcessingActive) return;
@@ -154,11 +159,39 @@ void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMShortImage *rawDep
 
     // use pose from files
     pose_file = fopen(pose_file_name,"r");
-    fscanf(pose_file,"%f %f %f",&rotation.m00,&rotation.m01,&rotation.m02);
-    fscanf(pose_file,"%f %f %f",&rotation.m10,&rotation.m11,&rotation.m12);
-    fscanf(pose_file,"%f %f %f",&rotation.m20,&rotation.m21,&rotation.m22);
-    fscanf(pose_file,"%f %f %f",&translation.x,&translation.y,&translation.z);
+    fscanf(pose_file,"%f",&rotation.m00);
+    fscanf(pose_file,"%f",&rotation.m01);
+    fscanf(pose_file,"%f",&rotation.m02);
+
+    fscanf(pose_file,"%f",&rotation.m10);
+    fscanf(pose_file,"%f",&rotation.m11);
+    fscanf(pose_file,"%f",&rotation.m12);
+
+    fscanf(pose_file,"%f",&rotation.m20);
+    fscanf(pose_file,"%f",&rotation.m21);
+    fscanf(pose_file,"%f",&rotation.m22);
+
+    fscanf(pose_file,"%f",&translation.x);
+    fscanf(pose_file,"%f",&translation.y);
+    fscanf(pose_file,"%f",&translation.z);
+
+    puts("Current pose");
+    puts("R:");
+    std::cout<<rotation;
+    puts("T:");
+    std::cout<<translation<<std::endl;
+
+    // use R_k^0, T_k^0
     trackingState->pose_d->SetRT(rotation, translation);
+
+    // R_k^0 -> R_0^k:   my dataset
+/*
+    Matrix3f R_0_k;
+    Vector3f T_0_k;
+    R_0_k = rotation.t();
+    T_0_k = - R_0_k * translation;
+    trackingState->pose_d->SetRT(R_0_k, T_0_k);
+*/
 
     fclose(pose_file);
 

@@ -50,8 +50,8 @@ LibUVCEngine.cpp
 LibUVCEngine.h
 UIEngine.cpp
 UIEngine.h
-CLIEngine.cpp
-CLIEngine.h
+#CLIEngine.cpp
+#CLIEngine.h
 RealSenseEngine.cpp
 RealSenseEngine.h
 )

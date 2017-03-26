@@ -2,6 +2,9 @@
 
 #include "FileUtils.h"
 
+// by Timer
+#include <opencv2/opencv.hpp>
+
 #include <stdio.h>
 #include <fstream>
 
@@ -331,7 +334,8 @@ bool ReadImageFromFile(ITMUChar4Image* image, const char* fileName)
 	bool binary;
 	FILE *f = fopen(fileName, "rb");
 	if (f == NULL) return false;
-	type = pnm_readheader(f, &xsize, &ysize, &binary);
+	type = pnm_readheader(f, &xsize, &ysize, &binary);  // xsize = width, ysize = height
+
 	if ((type != RGB_8u)&&(type != RGBA_8u)) {
 		fclose(f);
 		f = fopen(fileName, "rb");
@@ -366,6 +370,44 @@ bool ReadImageFromFile(ITMUChar4Image* image, const char* fileName)
 		{
 			dataPtr[i].x = data[i * 3 + 0]; dataPtr[i].y = data[i * 3 + 1];
 			dataPtr[i].z = data[i * 3 + 2]; dataPtr[i].w = 255;
+		}
+
+		delete[] data;
+	}
+
+	return true;
+}
+
+bool my_ReadImageFromFile(ITMUChar4Image* image, const char* fileName)
+{
+    cv::Mat grey_image;
+    grey_image = cv::imread(fileName, 0);
+
+	int xsize, ysize;
+    xsize = MY_IMAGE_WIDTH;
+    ysize = MY_IMAGE_HEIGHT;
+
+	Vector2i newSize(xsize, ysize);
+	image->ChangeDims(newSize);
+	Vector4u *dataPtr = image->GetData(MEMORYDEVICE_CPU);
+
+	unsigned char *data;
+	data = new unsigned char[xsize*ysize * 3];
+
+	{
+        int u,v;
+        u = v = 0;
+		for (int i = 0; i < image->noDims.x*image->noDims.y; ++i)
+		{            
+			dataPtr[i].x = dataPtr[i].y = dataPtr[i].z = grey_image.at<uchar>(v,u);
+            dataPtr[i].w = 255;
+
+            u++;
+            if (u>=xsize)
+            {
+                u = 0;
+                v++;
+            }
 		}
 
 		delete[] data;
@@ -422,3 +464,23 @@ bool ReadImageFromFile(ITMShortImage *image, const char *fileName)
 	return true;
 }
 
+bool float_ReadImageFromFile(ITMFloatImage *image, const char *fileName)
+{
+	int xsize, ysize;
+    xsize = MY_IMAGE_WIDTH;
+    ysize = MY_IMAGE_HEIGHT;
+
+	Vector2i newSize(xsize, ysize);
+	image->ChangeDims(newSize);
+
+    FILE* depth_file;
+    depth_file = fopen(fileName,"r");
+	for (int i = 0; i < image->noDims.x*image->noDims.y; ++i)
+    {
+        float data;
+        fscanf(depth_file,"%f",&data);
+		image->GetData(MEMORYDEVICE_CPU)[i] = data;
+	}
+
+	return true;
+}

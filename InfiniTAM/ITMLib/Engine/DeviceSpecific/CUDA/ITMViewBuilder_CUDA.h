@@ -20,6 +20,7 @@ namespace ITMLib
 
             // by Timer
             void my_UpdateView(ITMView **view, ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, bool useBilateralFilter, bool modelSensorNoise = false, char* depth_file_name = NULL);
+            void float_UpdateView(ITMView **view, ITMUChar4Image *rgbImage, ITMFloatImage *rawDepthImage, bool useBilateralFilter, bool modelSensorNoise = false, char* depth_file_name = NULL);
 
 			void UpdateView(ITMView **view, ITMUChar4Image *rgbImage, ITMShortImage *rawDepthImage, bool useBilateralFilter, bool modelSensorNoise = false);
 			void UpdateView(ITMView **view, ITMUChar4Image *rgbImage, ITMFloatImage *depthImage);

@@ -10,7 +10,9 @@ void SaveImageToFile(const ITMUChar4Image* image, const char* fileName, bool fli
 void SaveImageToFile(const ITMShortImage* image, const char* fileName);
 void SaveImageToFile(const ITMFloatImage* image, const char* fileName);
 bool ReadImageFromFile(ITMUChar4Image* image, const char* fileName);
+bool my_ReadImageFromFile(ITMUChar4Image* image, const char* fileName);
 bool ReadImageFromFile(ITMShortImage *image, const char *fileName);
+bool float_ReadImageFromFile(ITMFloatImage *image, const char *fileName);
 
 template <typename T> void ReadFromBIN(T *data, int dataSize, const char *fileName)
 {

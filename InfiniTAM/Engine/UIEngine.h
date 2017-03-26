@@ -51,7 +51,9 @@ namespace InfiniTAM
 			ITMUChar4Image *outImage[NUM_WIN];
 			ITMMainEngine::GetImageType outImageType[NUM_WIN];
 
-			ITMUChar4Image *inputRGBImage; ITMShortImage *inputRawDepthImage;
+			ITMUChar4Image *inputRGBImage;
+            ITMFloatImage *my_inputRawDepthImage;  // by Timer
+            ITMShortImage *inputRawDepthImage;
 			ITMIMUMeasurement *inputIMUMeasurement;
 
 			bool freeviewActive;

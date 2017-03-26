@@ -24,12 +24,14 @@ ImageFileReader::ImageFileReader(const char *calibFilename, const char *rgbImage
 
 	cached_rgb = NULL;
 	cached_depth = NULL;
+    my_cached_depth = NULL;
 }
 
 ImageFileReader::~ImageFileReader()
 {
 	delete cached_rgb;
 	delete cached_depth;
+    delete my_cached_depth;
 }
 
 
@@ -55,17 +57,74 @@ void ImageFileReader::loadIntoCache(void)
 	//TODO> make nicer
 	cached_rgb = new ITMUChar4Image(true, false); 
 	cached_depth = new ITMShortImage(true, false);
+	my_cached_depth = new ITMFloatImage(true, false);
 
 	char str[2048];
 
 	sprintf(str, rgbImageMask, currentFrameNo);
+
+    // by Timer
+    {
+        char img_file_name[2048];
+        int i;
+        for (i=strlen(str)-1;i>=0;i--)
+            if (str[i]=='/') break;
+        i++;
+
+        memset(img_file_name,0,sizeof(img_file_name));
+        strcat(img_file_name, INPUT_DIR);
+        strcat(img_file_name, str+i);
+        i = strlen(img_file_name);
+        img_file_name[i-1] = 'g';
+        img_file_name[i-2] = 'n';
+        img_file_name[i-3] = 'p';
+        printf("Cache -> ImageFileReader::getImages:  img_file_name: %s\n",img_file_name);    // .png
+
+	    if (!my_ReadImageFromFile(cached_rgb, img_file_name)) 
+	    {
+		    delete cached_rgb; cached_rgb = NULL;
+		    printf("error reading file '%s'\n", img_file_name);
+	    }
+    }
+
+
+/*
 	if (!ReadImageFromFile(cached_rgb, str)) 
 	{
 		delete cached_rgb; cached_rgb = NULL;
 		printf("error reading file '%s'\n", str);
 	}
+*/
+
 
 	sprintf(str, depthImageMask, currentFrameNo);
+
+    // by Timer
+    {
+        char depth_file_name[2048];
+        int i;
+        for (i=strlen(str)-1;i>=0;i--)
+            if (str[i]=='/') break;
+        i++;
+
+        memset(depth_file_name,0,sizeof(depth_file_name));
+        strcat(depth_file_name, INPUT_DIR);
+        strcat(depth_file_name, str+i);
+        i = strlen(depth_file_name);
+        depth_file_name[i-1] = 'm';
+        depth_file_name[i-2] = 'g';
+        depth_file_name[i-3] = 'p';
+        printf("Cache -> ImageFileReader::getImages:  depth_file_name: %s\n",depth_file_name);    // .png
+
+	    if (!float_ReadImageFromFile(my_cached_depth, depth_file_name)) 
+	    {
+		    delete my_cached_depth; my_cached_depth = NULL;
+		    printf("error reading file '%s'\n", depth_file_name);
+	    }
+    }
+    return;
+
+
 	if (!ReadImageFromFile(cached_depth, str)) 
 	{
 		delete cached_depth; cached_depth = NULL;
@@ -74,7 +133,7 @@ void ImageFileReader::loadIntoCache(void)
     else // by Timer
     {
         int i;
-        for (i=strlen(str)-1;i--;i>=0)
+        for (i=strlen(str)-1;i>=0;i--)
             if (str[i]=='/') break;
         i++;
         printf("Reading depth file: %s\n", str+i);
@@ -113,12 +172,13 @@ void ImageFileReader::loadIntoCache(void)
 bool ImageFileReader::hasMoreImages(void)
 {
 	loadIntoCache();
-	return ((cached_rgb!=NULL)&&(cached_depth!=NULL));
+	return ((cached_rgb!=NULL)&&(cached_depth!=NULL)&&(my_cached_depth!=NULL));
 }
 
 
 // by Timer
-void ImageFileReader::my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* depth_file_name)
+void ImageFileReader::my_getImages(ITMUChar4Image *rgb, ITMFloatImage *rawDepth, char* img_file_name, char* depth_file_name)
+//void ImageFileReader::my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* img_file_name, char* depth_file_name)
 {
     puts("Into ImageFileReader::my_getImages.");
 
@@ -128,27 +188,48 @@ void ImageFileReader::my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth,
 		delete cached_rgb;
 		cached_rgb = NULL;
 		bUsedCache = true;
+
+        // by Timer
+        char str[2048];
+		sprintf(str, rgbImageMask, currentFrameNo);
+        int i;
+        for (i=strlen(str)-1;i>=0;i--)
+            if (str[i]=='/') break;
+        i++;
+
+        strcat(img_file_name, INPUT_DIR);
+        strcat(img_file_name, str+i);
+        i = strlen(img_file_name);
+        img_file_name[i-1] = 'g';
+        img_file_name[i-2] = 'n';
+        img_file_name[i-3] = 'p';
+        printf("ImageFileReader::getImages:  img_file_name: %s\n",img_file_name);    // .png
 	}
-	if (cached_depth != NULL) {
-		rawDepth->SetFrom(cached_depth, ORUtils::MemoryBlock<short>::CPU_TO_CPU);
-		delete cached_depth;
-		cached_depth = NULL;
+	if (my_cached_depth != NULL) {
+        puts("Before rawDepth->SetFrom");
+		rawDepth->SetFrom(my_cached_depth, ORUtils::MemoryBlock<float>::CPU_TO_CPU);
+        puts("After rawDepth->SetFrom");
+		delete my_cached_depth;
+		my_cached_depth = NULL;
 		bUsedCache = true;
 
         // by Timer
         char str[2048];
 		sprintf(str, depthImageMask, currentFrameNo);
         int i;
-        for (i=strlen(str)-1;i--;i>=0)
+        for (i=strlen(str)-1;i>=0;i--)
             if (str[i]=='/') break;
         i++;
         printf("Reading depth file: %s\n", str+i);
 
-        memset(depth_file_name,0,sizeof(depth_file_name));
-        strcat(depth_file_name, "/home/timer/work_git/Teddy/depth2pointcloud/depth_results/");
+        strcat(depth_file_name, INPUT_DIR);
         strcat(depth_file_name, str+i);
         printf("ImageFileReader::getImages:  depth_file_name: %s\n",depth_file_name);    // also .pgm
 	}
+    else
+    {
+        puts("ImageSouceEngine.cpp -> No my_cached_depth?");
+    }
 
 	if (!bUsedCache) {
 		char str[2048];
@@ -157,7 +238,7 @@ void ImageFileReader::my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth,
 		if (!ReadImageFromFile(rgb, str)) printf("error reading file '%s'\n", str);
 
 		sprintf(str, depthImageMask, currentFrameNo);
-		if (!ReadImageFromFile(rawDepth, str)) printf("error reading file '%s'\n", str);
+		if (!float_ReadImageFromFile(rawDepth, str)) printf("error reading file '%s'\n", str);
 	}
 
 	++currentFrameNo;
@@ -197,14 +278,16 @@ void ImageFileReader::getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth)
 Vector2i ImageFileReader::getDepthImageSize(void)
 {
 	loadIntoCache();
-	return cached_depth->noDims;
+    return my_cached_depth->noDims;  // by Timer
+	//return cached_depth->noDims;
 }
 
 Vector2i ImageFileReader::getRGBImageSize(void)
 {
 	loadIntoCache();
 	if (cached_rgb != NULL) return cached_rgb->noDims;
-	return cached_depth->noDims;
+    return my_cached_depth->noDims; // by Timer
+	//return cached_depth->noDims;
 }
 
 CalibSource::CalibSource(const char *calibFilename, Vector2i setImageSize, float ratio)
@@ -280,12 +363,14 @@ void RawFileReader::loadIntoCache(void)
 	f = fopen(str, "rb");
 	if (f)
 	{
+        puts("In RawFileReader ??? Error");
 		size_t tmp = fread(cached_depth->GetData(MEMORYDEVICE_CPU), sizeof(short), imgSize.x * imgSize.y, f);
 		fclose(f);
 		if (tmp == (size_t)imgSize.x * imgSize.y) success = true;
 	}
 	if (!success)
 	{
+        puts("In RawFileReader ??? Error");
 		delete cached_depth; cached_depth = NULL;
 		printf("error reading file '%s'\n", str);
 	}

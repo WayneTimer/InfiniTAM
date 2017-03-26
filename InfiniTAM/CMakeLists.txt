@@ -3,8 +3,11 @@ project(InfiniTAM)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-add_definitions( -DMY_IMAGE_WIDTH=640 )
-add_definitions( -DMY_IMAGE_HEIGHT=480 )
+add_definitions( -DMY_IMAGE_WIDTH=640 )  # demo: 640
+add_definitions( -DMY_IMAGE_HEIGHT=480 )  # demo: 480
+add_definitions( -DINPUT_DIR="/home/timer/work_git/Teddy/vafric_results/" )
+#add_definitions( -DINPUT_DIR="/home/timer/work_git/Teddy/plane_sweep_results/" )
+# demo: "/home/timer/work_git/Teddy/depth2pointcloud/depth_results/"
 
 macro(CANONIFY_BOOL var)
   if (${var})
@@ -13,6 +16,8 @@ macro(CANONIFY_BOOL var)
     set(${var} FALSE)
   endif()
 endmacro()
+
+find_package(OpenCV REQUIRED)
 
 find_package(GLUT REQUIRED)
 find_package(OpenGL REQUIRED)
@@ -76,10 +81,10 @@ ELSE()
   add_definitions(-DCOMPILE_WITHOUT_CUDA)
 ENDIF()
 
-add_executable(InfiniTAM_cli InfiniTAM_cli.cpp)
-target_link_libraries(InfiniTAM_cli Engine)
-target_link_libraries(InfiniTAM_cli Utils)
+#add_executable(InfiniTAM_cli InfiniTAM_cli.cpp)
+#target_link_libraries(InfiniTAM_cli Engine ${OpenCV_LIBS})
+#target_link_libraries(InfiniTAM_cli Utils ${OpenCV_LIBS})
 add_executable(InfiniTAM InfiniTAM.cpp)
-target_link_libraries(InfiniTAM Engine dw)
-target_link_libraries(InfiniTAM Utils)
+target_link_libraries(InfiniTAM Engine ${OpenCV_LIBS} dw)
+target_link_libraries(InfiniTAM Utils ${OpenCV_LIBS})
 

@@ -18,7 +18,9 @@ namespace InfiniTAM
 
 			virtual bool hasMoreImages(void) = 0;
 			virtual void getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth) = 0;
-			virtual void my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* depth_file_name) { };  // by Timer
+            // by Timer
+            virtual void my_getImages(ITMUChar4Image *rgb, ITMFloatImage *rawDepth, char* img_file_name, char* depth_file_name) { };  // by Timer
+			//virtual void my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* img_file_name, char* depth_file_name) { };  // by Timer
 			virtual Vector2i getDepthImageSize(void) = 0;
 			virtual Vector2i getRGBImageSize(void) = 0;
 		};
@@ -32,6 +34,7 @@ namespace InfiniTAM
 
 			ITMUChar4Image *cached_rgb;
 			ITMShortImage *cached_depth;
+			ITMFloatImage *my_cached_depth;
 
 			void loadIntoCache();
 			int cachedFrameNo;
@@ -43,7 +46,9 @@ namespace InfiniTAM
 
 			bool hasMoreImages(void);
 			void getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth);
-			void my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* depth_file_name);  // by Timer
+            // by Timer
+            void my_getImages(ITMUChar4Image *rgb, ITMFloatImage *rawDepth, char* img_file_name, char* depth_file_name);
+			//void my_getImages(ITMUChar4Image *rgb, ITMShortImage *rawDepth, char* img_file_name, char* depth_file_name);  // by Timer
 			Vector2i getDepthImageSize(void);
 			Vector2i getRGBImageSize(void);
 		};
