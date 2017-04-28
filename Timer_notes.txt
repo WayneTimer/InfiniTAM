@@ -1,0 +1,17 @@
+ITMColorTracker_CPU.cpp:
+getColorDifferenceSq()
+ITMColorTracker.h:
+pt_image.x pt_image.y
+
+
+
+Vafric dataset:
+1. CMakeLists.txt: add_definitions x 3
+2. ./InfiniTAM/Utils/FileUtils.cpp: float_ReadImageFromFile() -- line 483
+3. Teddy/my_run.sh
+
+Plane sweep:
+(Same 1. 2. as above)
+3. Teddy/plane_sweep_run.sh
+(4. Ugly code in ./InfiniTAM/ITMLib/Engine/ITMVisualisationEngine.cpp, limit the max depth for visulization,
+switch by #if MY_IMAGE_WIDTH == 320)

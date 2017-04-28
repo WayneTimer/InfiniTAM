@@ -3,10 +3,10 @@ project(InfiniTAM)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
-add_definitions( -DMY_IMAGE_WIDTH=640 )  # demo: 640
-add_definitions( -DMY_IMAGE_HEIGHT=480 )  # demo: 480
-add_definitions( -DINPUT_DIR="/home/timer/work_git/Teddy/vafric_results/" )
-#add_definitions( -DINPUT_DIR="/home/timer/work_git/Teddy/plane_sweep_results/" )
+add_definitions( -DMY_IMAGE_WIDTH=320 )  # demo/vafric: 640,  plane_sweep: 320
+add_definitions( -DMY_IMAGE_HEIGHT=184 )  # demo/vafric: 480,  plane_sweep: 184
+#add_definitions( -DINPUT_DIR="/home/timer/work_git/Teddy/vafric_results/" )
+add_definitions( -DINPUT_DIR="/home/timer/work_git/Teddy/plane_sweep_results/" )
 # demo: "/home/timer/work_git/Teddy/depth2pointcloud/depth_results/"
 
 macro(CANONIFY_BOOL var)

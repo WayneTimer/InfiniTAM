@@ -35,7 +35,9 @@ void IITMVisualisationEngine::DepthToUchar4(ITMUChar4Image *dst, ITMFloatImage *
 		float sourceVal = source[idx];
 		if (sourceVal > 0.0f) { lims[0] = MIN(lims[0], sourceVal); lims[1] = MAX(lims[1], sourceVal); }
 	}
-
+#if MY_IMAGE_WIDTH == 320
+lims[1]=6.0f;  // Ugly code... To specify the plane sweep case, limit the noisy max depth to a visualizable value
+#endif
 	scale = ((lims[1] - lims[0]) != 0) ? 1.0f / (lims[1] - lims[0]) : 1.0f / lims[1];
 
 	if (lims[0] == lims[1]) return;
