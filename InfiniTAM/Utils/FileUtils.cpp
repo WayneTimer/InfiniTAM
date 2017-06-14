@@ -480,7 +480,6 @@ bool float_ReadImageFromFile(ITMFloatImage *image, const char *fileName)
         float data;
         fscanf(depth_file,"%f",&data);
 		image->GetData(MEMORYDEVICE_CPU)[i] = data;
-		//image->GetData(MEMORYDEVICE_CPU)[i] = data / 100.0f;  // by Timer, temp solution for vafric dataset
 	}
 
 	return true;
