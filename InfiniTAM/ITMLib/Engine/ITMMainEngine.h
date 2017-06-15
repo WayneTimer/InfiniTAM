@@ -72,6 +72,11 @@ namespace ITMLib
 			ITMRenderState *renderState_live;
 			ITMRenderState *renderState_freeview;
 
+			// by Timer
+			bool use_our_state = false;
+			ITMPose* first_pose = new ITMPose();  // R = Identity(), T = 0
+			ITMPose* last_pose = new ITMPose();
+
 		public:
 			enum GetImageType
 			{

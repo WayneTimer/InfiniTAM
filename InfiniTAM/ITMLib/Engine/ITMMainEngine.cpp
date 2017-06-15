@@ -128,8 +128,12 @@ void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMFloatImage *rawDep
 
 	if (!mainProcessingActive) return;
 
+	
 	// tracking
-	//trackingController->Track(trackingState, view);
+	trackingController->Track(trackingState, view);
+	std::cout<<"origin trackingState->pose_d->GetM():"<<std::endl;
+	std::cout<<trackingState->pose_d->GetM()<<std::endl;	
+
 
     // by Timer
     // save pose
@@ -141,6 +145,25 @@ void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMFloatImage *rawDep
     char pose_file_name[100];
     memset(pose_file_name,0,sizeof(pose_file_name));
     strcpy(pose_file_name,depth_file_name);
+/*
+	int count = 0;
+	int base = 1;
+	int val = 0;
+	for (int j=i-1;count<4;j--)
+	{
+		val += (pose_file_name[j]-'0') * base;
+		base *= 10;
+		count++;
+	}
+	val--;
+	count = 0;
+	for (int j=i-1;count<4;j--)
+	{
+		pose_file_name[j] = '0' + (val%10);
+		val/=10;
+		count++;
+	}
+*/
     pose_file_name[i+1] = 't';
     pose_file_name[i+2] = 'x';
     pose_file_name[i+3] = 't';
@@ -173,25 +196,81 @@ void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMFloatImage *rawDep
 
     fscanf(pose_file,"%f",&translation.x);
     fscanf(pose_file,"%f",&translation.y);
-    fscanf(pose_file,"%f",&translation.z);
+    fscanf(pose_file,"%f",&translation.z);  // it is R_k^0, T_k^0
 
-    puts("Current pose");
-    puts("R:");
-    std::cout<<rotation;
-    puts("T:");
-    std::cout<<translation<<std::endl;
 
-    // use R_k^0, T_k^0
-    trackingState->pose_d->SetRT(rotation, translation);
-
-    // R_k^0 -> R_0^k:   my dataset
-/*
+    // R_k^0 -> R_0^k:   seem correct for InfiniTAM
     Matrix3f R_0_k;
-    Vector3f T_0_k;
+    Vector3f T_0_k, tmp;
     R_0_k = rotation.t();
-    T_0_k = - R_0_k * translation;
+    tmp = R_0_k * translation;
+	T_0_k = - tmp;
+/*
     trackingState->pose_d->SetRT(R_0_k, T_0_k);
+	trackingState->pose_d->Coerce();
 */
+	// --- right2left ---
+	Matrix3f right2left;
+	Vector3f T_right2left(0.0f,0.0f,0.0f);
+	right2left.m00 = 1.0;
+	right2left.m01 = 0.0;
+	right2left.m02 = 0.0;
+
+	right2left.m10 = 0.0;
+	right2left.m11 = 0.0;
+	right2left.m12 = 1.0;
+
+	right2left.m20 = 0.0;
+	right2left.m21 = 1.0;
+	right2left.m22 = 0.0;
+	ITMPose* r2l = new ITMPose();
+	r2l->SetRT(right2left, T_right2left);
+	// --- right2left ---
+
+
+
+
+
+	ITMPose* my_state = new ITMPose();
+	my_state->SetRT(R_0_k, T_0_k);
+
+/*
+ITMPose* left = new ITMPose();
+left->SetM(r2l->GetM() * my_state->GetM());
+my_state->SetFrom(left);
+*/
+
+
+
+	my_state->Coerce();
+	std::cout<<"R_0^k, T_0^k"<<std::endl;
+	std::cout<<"my_state->GetM():"<<std::endl;
+	std::cout<<my_state->GetM()<<std::endl;
+
+	ITMPose* new_state = new ITMPose();
+	if (!use_our_state)
+	{
+		first_pose->SetFrom(my_state);
+		use_our_state = true;
+	}
+	else
+	{	
+		new_state->SetM(my_state->GetM() * first_pose->GetInvM());
+		new_state->Coerce();
+		std::cout<<"new_state->GetM():"<<std::endl;  // This!
+		std::cout<<new_state->GetM()<<std::endl;
+		std::cout<<"new_state->GetInvM():"<<std::endl;
+		std::cout<<new_state->GetInvM()<<std::endl;
+
+		ITMPose* relative_pose = new ITMPose();
+		relative_pose->SetM(new_state->GetM() * last_pose->GetInvM());
+		relative_pose->Coerce();
+		std::cout<<"relative_pose->GetM():"<<std::endl;
+		std::cout<<relative_pose->GetM()<<std::endl;
+
+		last_pose->SetM(new_state->GetM());
+	}
+
 
     fclose(pose_file);
 
@@ -200,6 +279,14 @@ void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMFloatImage *rawDep
 
 	// raycast to renderState_live for tracking and free visualisation
 	trackingController->Prepare(trackingState, view, renderState_live);
+
+
+	// by Timer
+	// trackingState is the current state - 1
+	/*
+    trackingState->pose_d->SetFrom(new_state);
+	//use_our_state = true;	
+	*/
 }
 
 Vector2i ITMMainEngine::GetImageSize(void) const
