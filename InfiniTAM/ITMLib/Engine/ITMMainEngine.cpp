@@ -216,6 +216,7 @@ void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMFloatImage *rawDep
 		new_state->SetM(my_state->GetM() * first_pose->GetInvM());
 		new_state->Coerce();
 
+	#ifdef VAFRIC
 		Matrix4f modified_M = new_state->GetM();
 		modified_M(0,1) = - modified_M(0,1);  // column major
 		modified_M(1,0) = - modified_M(1,0);
@@ -224,6 +225,7 @@ void ITMMainEngine::ProcessFrame(ITMUChar4Image *rgbImage, ITMFloatImage *rawDep
 		modified_M(3,1) = - modified_M(3,1);
 		new_state->SetM(modified_M);
 		new_state->Coerce();
+	#endif
 	}
 	std::cout<<"new_state->GetM():"<<std::endl;  // This!
 	std::cout<<new_state->GetM()<<std::endl;

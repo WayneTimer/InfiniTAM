@@ -7,7 +7,29 @@
 using namespace ITMLib::Objects;
 
 ITMLibSettings::ITMLibSettings(void)
-	: sceneParams(0.02f, 100, 0.005f, 0.2f, 3.0f, false)
+	//: sceneParams(0.02f, 100, 0.005f, 0.2f, 3.0f, false)
+	: sceneParams(0.04f, 100, 0.010f, 0.2f, 10.0f, false)
+	/* by Timer
+	  sceneParams(float mu,
+											 //	Encodes the width of the band of the truncated
+			    								signed distance transform that is actually stored
+			    								in the volume. This is again usually specified in
+			    								meters. The resulting width in voxels is @ref mu
+			    								divided by @ref voxelSize.
+	  			  int maxW,
+											 // Up to @ref maxW observations per voxel are averaged.
+			    								Beyond that a sliding average is computed.
+				  float voxelSize,			 // Size of a voxel, usually given in meters.
+				  float viewFrustum_min,
+				  float viewFrustum_max,
+				  			    			 //	Fallback parameters: consider only parts of the
+			    								scene from @p viewFrustum_min in front of the camera
+			    								to a distance of @p viewFrustum_max. Usually the
+			    								actual depth range should be determined
+			    								automatically by a ITMLib::Engine::ITMVisualisationEngine.
+				  bool stopIntegratingAtMaxW // Stop integration once maxW has been reached.
+				 )
+	*/
 {
 	/// depth threashold for the ICP tracker
 	depthTrackerICPThreshold = 0.1f * 0.1f;

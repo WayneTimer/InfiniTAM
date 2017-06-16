@@ -3,6 +3,7 @@ project(InfiniTAM)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
+add_definitions( -DVAFRIC )  # vafric dataset
 add_definitions( -DMY_IMAGE_WIDTH=640 )  # demo/vafric: 640,  plane_sweep: 320
 add_definitions( -DMY_IMAGE_HEIGHT=480 )  # demo/vafric: 480,  plane_sweep: 184
 add_definitions( -DINPUT_DIR="/home/timer/work_git/Teddy/vafric_results_div100/" )
